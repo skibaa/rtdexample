@@ -8,11 +8,18 @@ ENV HOME /root
 RUN apt-get update
 RUN apt-get install -y python-dev
 RUN apt-get install -y python-pip
+RUN apt-get install -y build-essential
 
 # Clean up any files used by apt-get
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /root
+
+RUN cd /tmp &&\
+    curl http://download.redis.io/redis-stable.tar.gz | tar xz &&\
+    make -C redis-stable &&\
+    cp redis-stable/src/redis-cli /usr/local/bin &&\
+    rm -rf /tmp/redis-stable
 
 # Copy over our requirements.txt
 ADD requirements.txt /root/requirements.txt
@@ -29,9 +36,9 @@ ADD runservice.sh /etc/service/mywebserver/run
 RUN chmod +x /etc/service/mywebserver/run
 
 # Test our production image.
-ADD test /root/test
-RUN python -m unittest discover
-RUN rm -rf test
+# ADD test /root/test
+# RUN python -m unittest discover
+# RUN rm -rf test
 
 # Tell Docker that we are exposing the HTTP port
 EXPOSE 80
